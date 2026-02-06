@@ -9,7 +9,7 @@ on:
         type: string
 
 env:
-  RUST_TOOLCHAIN: 1.82.0
+  RUST_TOOLCHAIN: 1.93.0
 
 jobs:
   build-and-push:
@@ -24,8 +24,10 @@ jobs:
         include:
           - device-type: cpu
             image-suffix: "-cpu"
+            dockerfile: Dockerfile.cpu
           - device-type: rocm
             image-suffix: "-rocm"
+            dockerfile: Dockerfile.rocm
 
     steps:
       - name: Checkout repository
@@ -57,7 +59,7 @@ jobs:
       - name: Build and push Docker image (${{ matrix.device-type }})
         uses: docker/build-push-action@v5
         with:
-          file: Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           context: .
           tags: ${{ steps.meta.outputs.tags }}
@@ -65,5 +67,5 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            RUST_TOOLCHAIN=${{ env.RUST_TOOLCHAIN }}
+            RUST_VERSION=${{ env.RUST_TOOLCHAIN }}
             TABBY_VERSION=${{ github.event.inputs.tabby_version }}
